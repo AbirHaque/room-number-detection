@@ -1,0 +1,56 @@
+# 0 - 1 finger - Speed 1
+# 1 - 2 fingers - Speed 2
+# 2 - 3 fingers - Speed 3
+# 3 - 4 fingers - Claw Control
+# 4 - 5 fingers - Camera Control
+
+# 5 - Fist - Brake 
+# 6 - Open - Forward
+# 7 - Pinky out - Right
+# 8 - Thumb out - Left
+# 9 - 3 Fingers out - Back 
+
+
+if (hand_sign_id==0 and (num % 20 == 0)): 
+    if repeat != 0:
+        print("Speed 1")
+        speed = 1
+    repeat = 0
+elif hand_sign_id==1 and (num % 20 == 0):
+    if repeat != 1:
+        print("Speed 2")
+        speed = 2
+    repeat = 1
+elif hand_sign_id==2 and (num % 20 == 0):
+    if repeat != 2:
+        print("Speed 3")
+        speed = 3
+    repeat = 2
+elif hand_sign_id==3 and (num % 20 == 0):
+    if repeat != 3:
+        print("Claw Movement")
+    repeat = 3
+elif hand_sign_id==4 and (num % 20 == 0):
+    if repeat != 4:
+        print("Camera Movement?")
+    repeat = 4
+elif hand_sign_id==5 and (num % 20 == 0):
+    if repeat != 5:
+        print("Brake")
+    repeat = 5
+elif hand_sign_id==6 and (num % 20 == 0):
+    if repeat != 6:
+        print("Forward")
+    repeat = 6
+elif hand_sign_id==7 and (num % 20 == 0):
+    if repeat != 7:
+        print("Right")
+    repeat = 7
+elif hand_sign_id==8 and (num % 20 == 0):
+    if repeat != 8:
+        print("Left")
+    repeat = 8
+elif hand_sign_id==9 and (num % 20 == 0):
+    if repeat != 9:
+        print("Reverse")
+    repeat = 9
