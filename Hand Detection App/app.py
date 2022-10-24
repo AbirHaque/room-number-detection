@@ -19,7 +19,7 @@ def get_args():
     parser.add_argument("--width", help='cap width', type=int, default=1920)
     parser.add_argument("--height", help='cap height', type=int, default=1080)
     parser.add_argument('--use_static_image_mode', action='store_true')
-    parser.add_argument("--min_detection_confidence", help='min_detection_confidence', type=float, default=0.7)
+    parser.add_argument("--min_detection_confidence", help='min_detection_confidence', type=float, default=0.5)
     parser.add_argument("--min_tracking_confidence", help='min_tracking_confidence', type=int, default=0.5)
 
     args = parser.parse_args()
@@ -49,7 +49,7 @@ def main():
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
         static_image_mode=use_static_image_mode,
-        max_num_hands=2,
+        max_num_hands=1,
         min_detection_confidence=min_detection_confidence,
         min_tracking_confidence=min_tracking_confidence,
     )
@@ -115,63 +115,55 @@ def main():
                 hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
                 #ROBOT CONTROLS
                 #EXAMPLE #os.popen("curl http://10.104.158.248:5000/leftup")                
-# 0 - 1 finger - Speed 1
-# 1 - 2 fingers - Speed 2
-# 2 - 3 fingers - Speed 3
-# 3 - 4 fingers - Claw Control
-# 4 - 5 fingers - Camera Control
 
-# 5 - Fist - Brake 
-# 6 - Open - Forward
-# 7 - Pinky out - Right
-# 8 - Thumb out - Left
-# 9 - 3 Fingers out - Back 
-                if (hand_sign_id==0 and (num % 20 == 0)): 
+                if (hand_sign_id==0): 
                     if repeat != 0:
                         print("Speed 1")
                         speed = 1
                     repeat = 0
-                elif hand_sign_id==1 and (num % 20 == 0):
+                elif hand_sign_id==1:
                     if repeat != 1:
-                      print("Speed 2")
-                      speed = 2
+                        print("Speed 2")
+                        speed = 2
                     repeat = 1
-                elif hand_sign_id==2 and (num % 20 == 0):
+                elif hand_sign_id==2:
                     if repeat != 2:
                         print("Speed 3")
                         speed = 3
                     repeat = 2
-                elif hand_sign_id==3 and (num % 20 == 0):
+                elif hand_sign_id==3:
                     if repeat != 3:
                         print("Claw Movement")
                     repeat = 3
-                elif hand_sign_id==4 and (num % 20 == 0):
+                elif hand_sign_id==4:
                     if repeat != 4:
                         print("Camera Movement?")
                     repeat = 4
-                elif hand_sign_id==5 and (num % 20 == 0):
+                elif hand_sign_id==5:
                     if repeat != 5:
                         print("Brake")
+                        os.popen("curl http://192.168.137.16:5000/stop")
                     repeat = 5
-                elif hand_sign_id==6 and (num % 20 == 0):
+                elif hand_sign_id==6:
                     if repeat != 6:
                         print("Forward")
+                        os.popen("curl http://192.168.137.16:5000/front")
                     repeat = 6
-                elif hand_sign_id==7 and (num % 20 == 0):
+                elif hand_sign_id==7:
                     if repeat != 7:
                         print("Right")
+                        os.popen("curl http://192.168.137.16:5000/right")
                     repeat = 7
-                elif hand_sign_id==8 and (num % 20 == 0):
+                elif hand_sign_id==8:
                     if repeat != 8:
                         print("Left")
+                        os.popen("curl http://192.168.137.16:5000/left")
                     repeat = 8
-                elif hand_sign_id==9 and (num % 20 == 0):
+                elif hand_sign_id==9:
                     if repeat != 9:
                         print("Reverse")
+                        os.popen("curl http://192.168.137.16:5000/back")
                     repeat = 9
-                
-                #robot.left_motor.value = 0.0
-                #robot.right_motor.value = 0.0
 
                 # Drawing part
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
