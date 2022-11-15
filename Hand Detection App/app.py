@@ -18,8 +18,8 @@ def get_args():
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("--width", help='cap width', type=int , default=1280)
     parser.add_argument("--height", help='cap height', type=int, default=720)
-    parser.add_argument('--use_static_image_mode', action='store_true')
-    parser.add_argument("--min_detection_confidence", help='min_detection_confidence', type=float, default=0.5)
+    parser.add_argument('--use_static_image_mode', action='store_false')
+    parser.add_argument("--min_detection_confidence", help='min_detection_confidence', type=float, default=0.9)
     parser.add_argument("--min_tracking_confidence", help='min_tracking_confidence', type=int, default=0.5)
 
     args = parser.parse_args()
@@ -36,10 +36,10 @@ def main():
     cap_width = args.width
     cap_height = args.height
 
-    use_static_image_mode = args.use_static_image_mode
+    use_static_image_mode = False
     min_detection_confidence = args.min_detection_confidence
     min_tracking_confidence = args.min_tracking_confidence
-
+    print(use_static_image_mode)
     use_brect = True #Used for bounding Rectangle
 
     # Camera preparation ###############################################################
@@ -51,7 +51,7 @@ def main():
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
         static_image_mode=use_static_image_mode,
-        max_num_hands=1,
+        max_num_hands=2,
         min_detection_confidence=min_detection_confidence,
         min_tracking_confidence=min_tracking_confidence,
     )
@@ -73,7 +73,7 @@ def main():
     mode = 0
     repeat = 11 
     num = 0
-    hand_mode = 0
+    hand_mode = 10
     while True:
         num += 1
         fps = int(cvFpsCalc.get()) #Shows FPS
@@ -117,66 +117,76 @@ def main():
                 # Hand sign classification
                 hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
                 #ROBOT CONTROLS
-                
-                if (handedness.classification[0].label[0:] == "Left"):
-                    if (hand_sign_id==0): 
-                        if repeat != 0:
-                            print("Speed 1")
-                            hand_mode = 0
-                        repeat = 0
-                    elif hand_sign_id==1:
-                        if repeat != 1:
-                            print("Speed 2")
-                            hand_mode = 1
-                        repeat = 1
-                    elif hand_sign_id==2:
-                        if repeat != 2:
-                            print("Speed 3")
-                            hand_mode = 2
-                        repeat = 2
-                    elif hand_sign_id==3:
-                        if repeat != 3:
-                            print("Claw Movement") 
-                            hand_mode = 3
-                        repeat = 3
-                    elif hand_sign_id==4:
-                        if repeat != 4:
-                            print("Camera Movement")
-                            hand_mode = 4
-                        repeat = 4
-                if hand_mode in [0,1,2] and (handedness.classification[0].label[0:] == "Right"):
-                    if hand_sign_id==5:
-                        if repeat != 5:
-                            print("Brake")
-                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
-                        repeat = 5
-                    elif hand_sign_id==6:
-                        if repeat != 6:
-                            print("Forward")
-                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
-                        repeat = 6
-                    elif hand_sign_id==7:
-                        if repeat != 7:
-                            print("Right")
-                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
-                        repeat = 7
-                    elif hand_sign_id==8:
-                        if repeat != 8:
-                            print("Left")
-                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
-                        repeat = 8
-                    elif hand_sign_id==9:
-                        if repeat != 9:
-                            print("Reverse")
-                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
-                        repeat = 9
+                # if (handedness.classification[0].label[0:] == "Left"):
+                #     if (hand_sign_id==0): 
+                #         if repeat != 0:
+                #             print("Speed 1")
+                #             hand_mode = 0
+                #         repeat = 0
+                #     elif hand_sign_id==1:
+                #         if repeat != 1:
+                #             print("Speed 2")
+                #             hand_mode = 1
+                #         repeat = 1
+                #     elif hand_sign_id==2:
+                #         if repeat != 2:
+                #             print("Speed 3")
+                #             hand_mode = 2
+                #         repeat = 2
+                #     elif hand_sign_id==12:
+                #         if repeat != 12:
+                #             print("Claw Movement") 
+                #             hand_mode = 12
+                #         repeat = 12
+                #     elif hand_sign_id==4:
+                #         if repeat != 4:
+                #             print("Camera Movement")
+                #             hand_mode = 4
+                #         repeat = 4
+                # if hand_mode in [0,1,2] and (handedness.classification[0].label[0:] == "Right"):
+                #     if hand_sign_id==5:
+                #         if repeat != 5:
+                #             print("Brake")
+                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
+                #         repeat = 5
+                #     elif hand_sign_id==6:
+                #         if repeat != 6:
+                #             print("Forward")
+                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
+                #         repeat = 6
+                #     elif hand_sign_id==7:
+                #         if repeat != 7:
+                #             print("Right")
+                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
+                #         repeat = 7
+                #     elif hand_sign_id==8:
+                #         if repeat != 8:
+                #             print("Left")
+                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
+                #         repeat = 8
+                #     elif hand_sign_id==9:
+                #         if repeat != 9:
+                #             print("Reverse")
+                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
+                #         repeat = 9
 
-                if hand_mode == 3 and (handedness.classification[0].label[0:] == "Right"):
-                    if ((landmark_list[9][0] > 256) and (landmark_list[9][0] < 1024) and (landmark_list[9][1] > 144) and (landmark_list[9][1] < 576) ):
+                if (handedness.classification[0].label[0:] == "Right" ):
+                    if ((landmark_list[8][0] > 256) and (landmark_list[9][0] < 1024) and (landmark_list[8][1] > 144) and (landmark_list[9][1] < 576) ):
                         xpos = ((landmark_list[9][0] - (cap_width//2)) // 4 )
-                        ypos = ((landmark_list[9][1] - (cap_height//2))  // 4 )
-                        print(xpos , ypos)
-                        os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos))
+                        ypos = (-(landmark_list[9][1] - (cap_height//2))  // 2 ) - 50
+                        zpos = ((hand_landmarks.landmark[8].z * - 900) + 150)
+                        if (zpos > 150) and (zpos < 300) :
+                            print(xpos , ypos , int(zpos))
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos) + "^&" + "zpos=" + str(int(zpos)))
+                        if hand_sign_id==12: 
+                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_close")
+                                print("Close")
+                        if hand_sign_id==11: 
+                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_open")
+                                print("open")
+
+
+
 
                 # Drawing part
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
