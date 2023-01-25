@@ -1,13 +1,8 @@
-﻿Speed 1
-Speed 2
-Speed 3
-Claw Control (2)
-Camera Control
-Break
-Forward
-Right
-Left 
-Reverse
-Claw Close
-Claw Open
-Claw Close 
+﻿0 Break
+1 Forward
+2 Right
+3 Left 
+4 Reverse
+5 Claw Close
+6 Claw Open
+7 Claw Close 

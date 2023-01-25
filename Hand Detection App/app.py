@@ -9,6 +9,7 @@ import mediapipe as mp
 
 from utils import CvFpsCalc
 from model import KeyPointClassifier
+from DrawOnCamera import draw_landmarks, draw_bounding_rect, draw_claw_rect, draw_info_text, draw_info
 
 import os
 
@@ -16,8 +17,8 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--device", type=int, default=0)
-    parser.add_argument("--width", help='cap width', type=int , default=1280)
-    parser.add_argument("--height", help='cap height', type=int, default=720)
+    parser.add_argument("--width", help='cap width', type=int , default=1920)
+    parser.add_argument("--height", help='cap height', type=int, default=1080)
     parser.add_argument('--use_static_image_mode', action='store_false')
     parser.add_argument("--min_detection_confidence", help='min_detection_confidence', type=float, default=0.9)
     parser.add_argument("--min_tracking_confidence", help='min_tracking_confidence', type=int, default=0.5)
@@ -25,8 +26,6 @@ def get_args():
     args = parser.parse_args()
 
     return args
-
-#1280 , 710 ish
 
 def main():
     IP_ADDRESS_AND_PORT = "192.168.137.16:5000"
@@ -40,7 +39,7 @@ def main():
     min_detection_confidence = args.min_detection_confidence
     min_tracking_confidence = args.min_tracking_confidence
     print(use_static_image_mode)
-    use_brect = True #Used for bounding Rectangle
+    use_brect = True #Used for toggling bounding Rectangle
 
     # Camera preparation ###############################################################
     cap = cv.VideoCapture(cap_device)
@@ -67,7 +66,7 @@ def main():
         ]
 
     # FPS Measurement ########################################################
-    cvFpsCalc = CvFpsCalc(buffer_len=5)
+    cvFpsCalc = CvFpsCalc(buffer_len=10)
 
     #  ########################################################################
     mode = 0
@@ -116,77 +115,50 @@ def main():
                 logging_csv(number, mode, pre_processed_landmark_list)
                 # Hand sign classification
                 hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
-                #ROBOT CONTROLS
-                # if (handedness.classification[0].label[0:] == "Left"):
-                #     if (hand_sign_id==0): 
-                #         if repeat != 0:
-                #             print("Speed 1")
-                #             hand_mode = 0
-                #         repeat = 0
-                #     elif hand_sign_id==1:
-                #         if repeat != 1:
-                #             print("Speed 2")
-                #             hand_mode = 1
-                #         repeat = 1
-                #     elif hand_sign_id==2:
-                #         if repeat != 2:
-                #             print("Speed 3")
-                #             hand_mode = 2
-                #         repeat = 2
-                #     elif hand_sign_id==12:
-                #         if repeat != 12:
-                #             print("Claw Movement") 
-                #             hand_mode = 12
-                #         repeat = 12
-                #     elif hand_sign_id==4:
-                #         if repeat != 4:
-                #             print("Camera Movement")
-                #             hand_mode = 4
-                #         repeat = 4
-                # if hand_mode in [0,1,2] and (handedness.classification[0].label[0:] == "Right"):
-                #     if hand_sign_id==5:
-                #         if repeat != 5:
-                #             print("Brake")
-                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
-                #         repeat = 5
-                #     elif hand_sign_id==6:
-                #         if repeat != 6:
-                #             print("Forward")
-                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
-                #         repeat = 6
-                #     elif hand_sign_id==7:
-                #         if repeat != 7:
-                #             print("Right")
-                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
-                #         repeat = 7
-                #     elif hand_sign_id==8:
-                #         if repeat != 8:
-                #             print("Left")
-                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
-                #         repeat = 8
-                #     elif hand_sign_id==9:
-                #         if repeat != 9:
-                #             print("Reverse")
-                #             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
-                #         repeat = 9
+                
+                #MOVEMENT CONTROLS
+                if (handedness.classification[0].label[0:] == "Left"):
+                    if hand_sign_id==0:
+                        if repeat != 0:
+                            print("Brake")
+                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
+                        repeat = 0
+                    elif hand_sign_id==1:
+                        if repeat != 1:
+                            print("Forward")
+                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
+                        repeat = 1
+                    elif hand_sign_id==2:
+                        if repeat != 2:
+                            print("Right")
+                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
+                        repeat = 2
+                    elif hand_sign_id==3:
+                        if repeat != 3:
+                            print("Left")
+                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
+                        repeat = 3
+                    elif hand_sign_id==4:
+                        if repeat != 4:
+                            print("Reverse")
+                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
+                        repeat = 4
 
+                #CLAW CONTROLS
                 if (handedness.classification[0].label[0:] == "Right" ):
-                    if ((landmark_list[8][0] > 256) and (landmark_list[9][0] < 1024) and (landmark_list[8][1] > 144) and (landmark_list[9][1] < 576) ):
-                        xpos = ((landmark_list[9][0] - (cap_width//2)) // 4 )
-                        ypos = (-(landmark_list[9][1] - (cap_height//2))  // 2 ) - 50
+                    if ((landmark_list[9][0] >= (cap_width // 4)) and (landmark_list[9][0] <= ((cap_width // 5) * 4)) and (landmark_list[9][1] >= (cap_height // 4)) and (landmark_list[9][1] <= ((cap_height // 5) * 4)) ):
+                        xpos = ((landmark_list[9][0] - (cap_width//2)) // 5)
+                        ypos = (-(landmark_list[9][1] - (cap_height//2)) // 5 ) - 60
                         zpos = ((hand_landmarks.landmark[8].z * - 900) + 150)
-                        if (zpos > 150) and (zpos < 300) :
-                            print(xpos , ypos , int(zpos))
-                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos) + "^&" + "zpos=" + str(int(zpos)))
-                        if hand_sign_id==12: 
-                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_close")
+                        #if (zpos > 150) and (zpos < 300) :
+                        print(xpos , ypos , int(zpos))
+                            #os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos) + "^&" + "zpos=" + str(int(zpos)))
+                        if hand_sign_id==5 or hand_sign_id==7: 
+                                #os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_close")
                                 print("Close")
-                        if hand_sign_id==11: 
-                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_open")
+                        if hand_sign_id==6: 
+                                #os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_open")
                                 print("open")
-
-
-
 
                 # Drawing part
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
@@ -287,238 +259,6 @@ def logging_csv(number, mode, landmark_list):
             writer = csv.writer(f)
             writer.writerow([number, *landmark_list])
     return
-
-def draw_landmarks(image, landmark_point):
-    if len(landmark_point) > 0:
-        # Thumb
-        cv.line(image, tuple(landmark_point[2]), tuple(landmark_point[3]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[2]), tuple(landmark_point[3]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[3]), tuple(landmark_point[4]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[3]), tuple(landmark_point[4]),
-                (255, 255, 255), 2)
-
-        # Index finger
-        cv.line(image, tuple(landmark_point[5]), tuple(landmark_point[6]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[5]), tuple(landmark_point[6]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[6]), tuple(landmark_point[7]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[6]), tuple(landmark_point[7]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[7]), tuple(landmark_point[8]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[7]), tuple(landmark_point[8]),
-                (255, 255, 255), 2)
-
-        # Middle finger
-        cv.line(image, tuple(landmark_point[9]), tuple(landmark_point[10]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[9]), tuple(landmark_point[10]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[10]), tuple(landmark_point[11]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[10]), tuple(landmark_point[11]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[11]), tuple(landmark_point[12]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[11]), tuple(landmark_point[12]),
-                (255, 255, 255), 2)
-
-        # Ring finger
-        cv.line(image, tuple(landmark_point[13]), tuple(landmark_point[14]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[13]), tuple(landmark_point[14]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[14]), tuple(landmark_point[15]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[14]), tuple(landmark_point[15]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[15]), tuple(landmark_point[16]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[15]), tuple(landmark_point[16]),
-                (255, 255, 255), 2)
-
-        # Little finger
-        cv.line(image, tuple(landmark_point[17]), tuple(landmark_point[18]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[17]), tuple(landmark_point[18]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[18]), tuple(landmark_point[19]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[18]), tuple(landmark_point[19]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[19]), tuple(landmark_point[20]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[19]), tuple(landmark_point[20]),
-                (255, 255, 255), 2)
-
-        # Palm
-        cv.line(image, tuple(landmark_point[0]), tuple(landmark_point[1]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[0]), tuple(landmark_point[1]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[1]), tuple(landmark_point[2]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[1]), tuple(landmark_point[2]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[2]), tuple(landmark_point[5]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[2]), tuple(landmark_point[5]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[5]), tuple(landmark_point[9]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[5]), tuple(landmark_point[9]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[9]), tuple(landmark_point[13]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[9]), tuple(landmark_point[13]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[13]), tuple(landmark_point[17]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[13]), tuple(landmark_point[17]),
-                (255, 255, 255), 2)
-        cv.line(image, tuple(landmark_point[17]), tuple(landmark_point[0]),
-                (0, 0, 0), 6)
-        cv.line(image, tuple(landmark_point[17]), tuple(landmark_point[0]),
-                (255, 255, 255), 2)
-
-    # Key Points
-    for index, landmark in enumerate(landmark_point):
-        if index == 0:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 1:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 2:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 3:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 4:  
-            cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-        if index == 5:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 6:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 7:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 8:  
-            cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-        if index == 9:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 10:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 11:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 12:  
-            cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-        if index == 13:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 14:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 15:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 16:  
-            cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-        if index == 17:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 18:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 19:  
-            cv.circle(image, (landmark[0], landmark[1]), 5, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 5, (0, 0, 0), 1)
-        if index == 20:  
-            cv.circle(image, (landmark[0], landmark[1]), 8, (255, 255, 255),
-                      -1)
-            cv.circle(image, (landmark[0], landmark[1]), 8, (0, 0, 0), 1)
-
-    return image
-
-def draw_bounding_rect(use_brect, image, brect):
-    if use_brect:
-        # Outer rectangle
-        cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[3]),
-                     (0, 0, 0), 1)
-
-    return image
-
-def draw_claw_rect( use_claw , image , width , height):
-    if use_claw:
-        cv.rectangle(image, ((width // 5) , (height // 5)) , ((4 * width//5) , (4 * height//5)) , (255, 255, 255) , 2)
-        return image
-
-
-def draw_info_text(image, brect, handedness, hand_sign_text):
-    cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[1] - 22),
-                 (0, 0, 0), -1)
-
-    info_text = handedness.classification[0].label[0:]
-    if hand_sign_text != "":
-        info_text = info_text + ':' + hand_sign_text
-    cv.putText(image, info_text, (brect[0] + 5, brect[1] - 4),
-               cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv.LINE_AA)
-
-    return image
-
-
-def draw_info(image, fps, mode, number):
-    cv.putText(image, "FPS:" + str(fps), (10, 30), cv.FONT_HERSHEY_SIMPLEX,
-               1.0, (0, 0, 0), 4, cv.LINE_AA)
-    cv.putText(image, "FPS:" + str(fps), (10, 30), cv.FONT_HERSHEY_SIMPLEX,
-               1.0, (255, 255, 255), 2, cv.LINE_AA)
-
-    mode_string = ['Logging Key Point']
-    if 1 <= mode <= 2:
-        cv.putText(image, "MODE:" + mode_string[mode - 1], (10, 90),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
-                   cv.LINE_AA)
-        if 0 <= number <= 9:
-            cv.putText(image, "NUM:" + str(number), (10, 110),
-                       cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1,
-                       cv.LINE_AA)
-    return image
-
 
 if __name__ == '__main__':
     main()
