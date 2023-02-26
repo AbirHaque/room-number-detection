@@ -37,7 +37,7 @@ def main():
     min_tracking_confidence = args.min_tracking_confidence
     cvFpsCalc = CvFpsCalc(buffer_len=1)
 
-    IP_ADDRESS_AND_PORT = '192.168.137.16:5000'
+    IP_ADDRESS_AND_PORT = '192.168.137.186:5000' #Change When switching wifi on robot
 
     #Camera Setup
     cap = cv.VideoCapture(cap_device)
@@ -104,27 +104,27 @@ def main():
                     if hand_sign_id==0:
                         if repeat != 0:
                             print("Brake")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
                         repeat = 0
                     elif hand_sign_id==1:
                         if repeat != 1:
                             print("Forward")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
                         repeat = 1
                     elif hand_sign_id==2:
                         if repeat != 2:
                             print("Right")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
                         repeat = 2
                     elif hand_sign_id==3:
                         if repeat != 3:
                             print("Left")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
                         repeat = 3
                     elif hand_sign_id==4:
                         if repeat != 4:
                             print("Reverse")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
                         repeat = 4
 
                 #CLAW CONTROLS
@@ -134,19 +134,19 @@ def main():
                         ypos = (-(landmark_list[9][1] - (cap_height//2)) // 5 ) - 60
                         zpos = ((hand_landmarks.landmark[8].z * - 900) + 150)
                         if (zpos > 150) and (zpos < 300):
-                            if delay%50 == 0:
+                            if delay%10 == 0:
                                 print(xpos , ypos , int(zpos))
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos) + "^&" + "zpos=" + str(int(zpos)))
-                    if hand_sign_id==5 or hand_sign_id==7: 
-                        if repeat != 5:
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_close")
-                            print("Close")
-                            repeat = 5
-                    if hand_sign_id==6:
-                        if repeat!= 6: 
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_open")
-                            print("open")
-                            repeat = 6
+                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos) + "^&" + "zpos=" + str(int(zpos)))
+                        if hand_sign_id==5: 
+                            if repeat != 5:
+                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_close")
+                                print("Close")
+                                repeat = 5
+                        if hand_sign_id==6:
+                            if repeat!= 6: 
+                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_open")
+                                print("open")
+                                repeat = 6
                                 
 
                 #Drawings to display
