@@ -60,7 +60,8 @@ def main():
         keypoint_classifier_labels = [row[0] for row in keypoint_classifier_labels]
 
     mode = 0
-    repeat = None
+    Lrepeat = None
+    Rrepeat = None
     delay = 0
     while True:
         delay += 1
@@ -102,30 +103,37 @@ def main():
                 #Here is where I will add the controls to the robot
                 if (handedness.classification[0].label[0:] == "Left"):
                     if hand_sign_id==0:
-                        if repeat != 0:
+                        if Lrepeat != 0:
                             print("Brake")
                             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
-                        repeat = 0
+                        Lrepeat = 0
                     elif hand_sign_id==1:
-                        if repeat != 1:
+                        if Lrepeat != 1:
                             print("Forward")
                             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
-                        repeat = 1
+                        Lrepeat = 1
                     elif hand_sign_id==2:
-                        if repeat != 2:
+                        if Lrepeat != 2:
                             print("Right")
                             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
-                        repeat = 2
+                        Lrepeat = 2
                     elif hand_sign_id==3:
-                        if repeat != 3:
+                        if Lrepeat != 3:
                             print("Left")
                             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
-                        repeat = 3
+                        Lrepeat = 3
                     elif hand_sign_id==4:
-                        if repeat != 4:
+                        if Lrepeat != 4:
                             print("Reverse")
                             os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
-                        repeat = 4
+                        Lrepeat = 4
+                    elif hand_sign_id==7:
+                        if Lrepeat != 7:
+                            print("Donut")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/donut")
+                        Lrepeat = 7
+
+
 
                 #CLAW CONTROLS
                 if (handedness.classification[0].label[0:] == "Right" ):
@@ -133,21 +141,38 @@ def main():
                         xpos = ((landmark_list[9][0] - (cap_width//2)) // 5)
                         ypos = (-(landmark_list[9][1] - (cap_height//2)) // 5 ) - 60
                         zpos = ((hand_landmarks.landmark[8].z * - 900) + 150)
-                        if (zpos > 150) and (zpos < 300):
-                            if delay%10 == 0:
-                                print(xpos , ypos , int(zpos))
-                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos) + "^&" + "zpos=" + str(int(zpos)))
+                        # if (zpos > 150) and (zpos < 300):
                         if hand_sign_id==5: 
-                            if repeat != 5:
-                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_close")
-                                print("Close")
-                                repeat = 5
+                                if delay%5 == 0:
+                                    print(xpos , ypos , int(zpos))
+                                    os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos) + "^&" + "zpos=" + str(int(zpos)))
+                                if Rrepeat != 5:
+                                    os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_close")
+                                    print("Close")
+                                    Rrepeat = 5
                         if hand_sign_id==6:
-                            if repeat!= 6: 
-                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_open")
-                                print("open")
-                                repeat = 6
-                                
+                                if delay%5 == 0:
+                                    print(xpos , ypos , int(zpos))
+                                    os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/arm?" + "xpos=" + str(xpos) + "^&" + "ypos=" + str(ypos) + "^&" + "zpos=" + str(int(zpos)))
+                                if Rrepeat!= 6: 
+                                    os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/claw_open")
+                                    print("open")
+                                    Rrepeat = 6
+                        if hand_sign_id==8:
+                            if Rrepeat != 8:
+                                print("StandTall")
+                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/standtall")
+                            if hand_sign_id==9:
+                                print("Dance")
+                                os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/dance")
+                                time.sleep(8)
+                            Rrepeat = 8
+                        # if hand_sign_id==9:
+                        #     if Rrepeat != 9:
+                        #         print("Clap")
+                        #         os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/dance")
+                        #         time.sleep(8)
+                        #     Rrepeat = 9
 
                 #Drawings to display
                 debug_image = Drawings.draw_bounding_rect(True, debug_image, b_rect)
