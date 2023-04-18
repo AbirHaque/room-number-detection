@@ -105,32 +105,32 @@ def main():
                     if hand_sign_id==0:
                         if Lrepeat != 0:
                             print("Brake")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/stop")
                         Lrepeat = 0
                     elif hand_sign_id==1:
                         if Lrepeat != 1:
                             print("Forward")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/front")
                         Lrepeat = 1
                     elif hand_sign_id==2:
                         if Lrepeat != 2:
                             print("Right")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/right")
                         Lrepeat = 2
                     elif hand_sign_id==3:
                         if Lrepeat != 3:
                             print("Left")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/left")
                         Lrepeat = 3
                     elif hand_sign_id==4:
                         if Lrepeat != 4:
                             print("Reverse")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/back")
                         Lrepeat = 4
                     elif hand_sign_id==7:
                         if Lrepeat != 7:
                             print("Donut")
-                            # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/donut")
+                            os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/donut")
                         Lrepeat = 7
 
 
@@ -164,8 +164,8 @@ def main():
                                 os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/standtall")
                             Rrepeat = 8
 
-                            if hand_sign_id==9:
-                                print("Dance")
+                            # if hand_sign_id==9:
+                            #     print("Dance")
                                 # os.popen("curl http://" + IP_ADDRESS_AND_PORT + "/dance")
                                 # time.sleep(8)
                             # if hand_sign_id==9:
